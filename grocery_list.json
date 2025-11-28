@@ -1,0 +1,230 @@
+[
+  {
+    "name": "Potirons (2 moyens)",
+    "category": "Frais"
+  },
+  {
+    "name": "Oignons (3)",
+    "category": "Frais"
+  },
+  {
+    "name": "Ail (2 têtes)",
+    "category": "Frais"
+  },
+  {
+    "name": "Crème fraîche épaisse (50cl)",
+    "category": "Frais"
+  },
+  {
+    "name": "Beurre (250g)",
+    "category": "Frais"
+  },
+  {
+    "name": "Oeufs (12)",
+    "category": "Frais"
+  },
+  {
+    "name": "Lardons fumés (250g)",
+    "category": "Frais"
+  },
+  {
+    "name": "Pâte brisée (2)",
+    "category": "Frais"
+  },
+  {
+    "name": "Salade verte (2 têtes)",
+    "category": "Frais"
+  },
+  {
+    "name": "Tomates (6)",
+    "category": "Frais"
+  },
+  {
+    "name": "Pommes (6)",
+    "category": "Frais"
+  },
+  {
+    "name": "Pâte feuilletée (1)",
+    "category": "Frais"
+  },
+  {
+    "name": "Avocats (6)",
+    "category": "Frais"
+  },
+  {
+    "name": "Crevettes roses cuites (500g décortiquées)",
+    "category": "Frais"
+  },
+  {
+    "name": "Citron vert (1)",
+    "category": "Frais"
+  },
+  {
+    "name": "Poulet entier (2 x 1.5kg)",
+    "category": "Frais"
+  },
+  {
+    "name": "Pommes de terre (2kg)",
+    "category": "Frais"
+  },
+  {
+    "name": "Chocolat noir pâtissier (200g)",
+    "category": "Frais"
+  },
+  {
+    "name": "Oeufs (6)",
+    "category": "Frais"
+  },
+  {
+    "name": "Beurre (50g)",
+    "category": "Frais"
+  },
+  {
+    "name": "Foie gras (400g)",
+    "category": "Frais"
+  },
+  {
+    "name": "Dinde (3.5 kg)",
+    "category": "Frais"
+  },
+  {
+    "name": "Marrons cuits (800g)",
+    "category": "Frais"
+  },
+  {
+    "name": "Crème liquide entière (25cl)",
+    "category": "Frais"
+  },
+  {
+    "name": "Bûche de Noël (1)",
+    "category": "Frais"
+  },
+  {
+    "name": "Clémentines (1kg)",
+    "category": "Frais"
+  },
+  {
+    "name": "Pain de mie",
+    "category": "Frais"
+  },
+  {
+    "name": "Lait",
+    "category": "Frais"
+  },
+  {
+    "name": "Yaourts nature (6)",
+    "category": "Frais"
+  },
+  {
+    "name": "Jambon",
+    "category": "Frais"
+  },
+  {
+    "name": "Fromage",
+    "category": "Frais"
+  },
+  {
+    "name": "Farine",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Sel",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Poivre",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Muscade (moulue)",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Bouillon de légumes (1 cube ou 50cl)",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Huile d'olive",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Vinaigre",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Sucre",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Sel",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Poivre",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Thé",
+    "category": "Boissons"
+  },
+  {
+    "name": "Café",
+    "category": "Boissons"
+  },
+  {
+    "name": "Jus de fruits",
+    "category": "Boissons"
+  },
+  {
+    "name": "Eau plate",
+    "category": "Boissons"
+  },
+  {
+    "name": "Eau gazeuse",
+    "category": "Boissons"
+  },
+  {
+    "name": "Vin blanc (pour le poulet et l'apéritif)",
+    "category": "Boissons"
+  },
+  {
+    "name": "Vin rouge (pour le repas)",
+    "category": "Boissons"
+  },
+  {
+    "name": "Bière (au choix)",
+    "category": "Boissons"
+  },
+  {
+    "name": "Toasts",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Epices (selon vos goûts)",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Chocolat en poudre (pour les enfants)",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Chips ou autres snacks",
+    "category": "Épicerie"
+  },
+  {
+    "name": "Serviettes en papier",
+    "category": "Autre"
+  },
+  {
+    "name": "Films alimentaires",
+    "category": "Autre"
+  },
+  {
+    "name": "Sacs poubelles",
+    "category": "Autre"
+  },
+  {
+    "name": "Essuie-tout",
+    "category": "Autre"
+  }
+]

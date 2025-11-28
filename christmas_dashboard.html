@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Noël à Menetou 🎄</title>
+    <title>Noël à Menetou 🎅</title>
     <style>
         :root {
-            --christmas-red: #D42426;
-            --christmas-green: #2F5233;
-            --gold: #F1D570;
-            --snow: #F8F9FA;
-            --text-dark: #2C3E50;
+            --christmas-red: #d42426;
+            --christmas-green: #2f5233;
+            --gold: #f1c40f;
+            --snow: #f0f0f0;
+            --text-dark: #333;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
@@ -27,11 +27,11 @@
         header {
             background: linear-gradient(135deg, var(--christmas-red), #b31b1d);
             color: white;
-            padding: 2rem 1rem;
+            padding: 2rem;
             text-align: center;
-            box-shadow: var(--shadow);
             position: relative;
             overflow: hidden;
+            box-shadow: var(--shadow);
         }
 
         header h1 {
@@ -41,7 +41,6 @@
         }
 
         header p {
-            font-size: 1.2rem;
             margin-top: 0.5rem;
             opacity: 0.9;
         }
@@ -266,6 +265,67 @@
         .icon-btn:hover {
             transform: scale(1.1);
         }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .nav-container {
+                gap: 0.5rem;
+            }
+
+            .nav-btn {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+                flex: 1 1 45%;
+                text-align: center;
+            }
+
+            /* Stack meal inputs */
+            .meal-block>div[style*="display:flex"] {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+
+            .meal-block input,
+            .meal-block select {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            /* Stack grocery and budget inputs */
+            #courses .card>div[style*="display: flex"],
+            #budget .card>div[style*="display: flex"] {
+                flex-direction: column !important;
+            }
+
+            /* Budget table scroll */
+            #budget table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .card {
+                padding: 1rem;
+            }
+
+            /* Task list items */
+            #tasks-list-container li {
+                flex-wrap: wrap;
+            }
+
+            #tasks-list-container li>input {
+                margin-bottom: 0.5rem;
+            }
+
+            #tasks-list-container li>div {
+                min-width: 100%;
+                margin-bottom: 0.5rem;
+            }
+        }
     </style>
 </head>
 
@@ -467,8 +527,7 @@
             document.body.appendChild(errDiv);
             return false;
         };
-    </script>
-    <script>
+
         // --- NAVIGATION ---
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -498,6 +557,7 @@
             document.getElementById("hours").innerText = hours;
             document.getElementById("minutes").innerText = minutes;
         }
+
         setInterval(updateCountdown, 60000);
         updateCountdown();
 
@@ -509,10 +569,7 @@
         let apiUrl = localStorage.getItem(API_URL_KEY) || '';
         let geminiKey = localStorage.getItem(GEMINI_API_KEY_KEY) || '';
 
-        const PARTICIPANTS = [
-            "Papy Dudu", "Mamie Sophie", "Marine", "Anthony", "Angélique", "Paul",
-            "Brune (Enfant)", "Alba (Enfant)", "Lilou (Enfant)"
-        ];
+        const PARTICIPANTS = ["Papy Dudu", "Mamie Sophie", "Marine", "Anthony", "Angélique", "Paul", "Brune (Enfant)", "Alba (Enfant)", "Lilou (Enfant)"];
 
         const defaultData = {
             meals: [
@@ -553,9 +610,11 @@
             document.getElementById('api-url-input').value = apiUrl;
             document.getElementById('gemini-key-input').value = geminiKey;
         }
+
         function closeSettings() {
             document.getElementById('settings-modal').style.display = 'none';
         }
+
         function saveSettings() {
             const url = document.getElementById('api-url-input').value.trim();
             const key = document.getElementById('gemini-key-input').value.trim();
@@ -568,15 +627,17 @@
                 geminiKey = key;
                 localStorage.setItem(GEMINI_API_KEY_KEY, geminiKey);
             }
-
             closeSettings();
             if (apiUrl) syncData();
+        }
+
+        function saveData() {
+            localStorage.setItem(APP_DATA_KEY, JSON.stringify(appData));
         }
 
         // Core Sync Logic
         async function loadData() {
             populateSelects();
-
             const local = localStorage.getItem(APP_DATA_KEY);
             if (local) {
                 try {
@@ -592,19 +653,14 @@
             } else {
                 appData = JSON.parse(JSON.stringify(defaultData));
             }
-
             refreshUI();
-
             if (apiUrl) {
                 await syncData();
             }
         }
 
         async function syncData() {
-            if (!apiUrl) {
-                return;
-            }
-
+            if (!apiUrl) return;
             const btn = document.querySelector('button[title="Synchroniser maintenant"]');
             if (btn) {
                 btn.classList.add('rotating');
@@ -636,24 +692,30 @@
             } catch (e) {
                 console.error("Sync error", e);
                 if (btn) btn.innerHTML = "❌";
-                const btn = document.querySelector('button[title="Synchroniser maintenant"]');
-                if (btn) btn.innerHTML = "☁️";
+
+                // Try to push local data if fetch failed (maybe offline or server empty)
+                // Actually, let's just try to save local data to server if read failed? 
+                // No, standard sync usually reads first. 
+                // Let's keep the logic simple: if read fails, we don't overwrite server.
+                // But if we have local changes, we might want to push.
+                // For now, let's just try to push current data to be safe?
+                // The original code had a nested try/catch for POST.
 
                 try {
                     const formData = new FormData();
                     formData.append('data', JSON.stringify(appData));
-
                     await fetch(apiUrl, {
                         method: 'POST',
                         body: formData
                     });
                     if (btn) btn.innerHTML = "✅";
-                } catch (e) {
-                    console.error("Save error", e);
+                } catch (e2) {
+                    console.error("Save error", e2);
                     if (btn) btn.innerHTML = "⚠️";
                 }
-                if (btn) setTimeout(() => btn.innerHTML = "🔄", 2000);
             }
+
+            if (btn) setTimeout(() => btn.innerHTML = "🔄", 2000);
         }
 
         function refreshUI() {
@@ -679,23 +741,23 @@
                 mealDiv.style.borderLeft = '4px solid var(--christmas-red)';
 
                 const createRow = (type, label, val, by) => `
-                <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem; align-items:center;">
-                    <input type="text" placeholder="${label}" value="${val || ''}"
-                        onchange="updateMeal(${index}, '${type}', this.value)" style="flex:2; margin-bottom:0;">
+                    <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem; align-items:center;">
+                        <input type="text" placeholder="${label}" value="${val || ''}" 
+                            onchange="updateMeal(${index}, '${type}', this.value)" style="flex:2; margin-bottom:0;">
                         <select onchange="updateMeal(${index}, '${type}_by', this.value)" style="flex:1; margin-bottom:0;">
                             ${getParticipantOptions(by)}
                         </select>
                     </div>
-            `;
+                `;
 
                 mealDiv.innerHTML = `
-                <h3 style="margin-top:0">${meal.title}</h3>
+                    <h3 style="margin-top:0">${meal.title}</h3>
                     <div style="display:grid; gap:0.5rem;">
                         ${createRow('starter', 'Entrée', meal.starter, meal.starter_by)}
                         ${createRow('main', 'Plat Principal', meal.main, meal.main_by)}
                         ${createRow('dessert', 'Dessert', meal.dessert, meal.dessert_by)}
                     </div>
-            `;
+                `;
                 container.appendChild(mealDiv);
             });
         }
@@ -704,8 +766,10 @@
             const oldValue = appData.meals[index][field];
             appData.meals[index][field] = newValue;
 
+            // Auto-add to grocery list if food item changed
             if (!field.endsWith('_by')) {
                 if (oldValue) {
+                    // Remove old item if it exists in grocery list (simple check)
                     const itemIndex = appData.courses.findIndex(c => c.name === oldValue);
                     if (itemIndex !== -1) {
                         if (newValue) appData.courses[itemIndex].name = newValue;
@@ -716,9 +780,11 @@
                 }
             }
 
+            // Auto-add to budget if meal title (just to initialize budget line?)
+            // Logic from original code:
             if (newValue) {
                 const mealTitle = appData.meals[index].title;
-                const budgetDesc = `Budget ${mealTitle} `;
+                const budgetDesc = `Budget ${mealTitle}`;
                 const budgetExists = appData.budget.some(b => b.desc === budgetDesc);
                 if (!budgetExists) {
                     appData.budget.push({ desc: budgetDesc, amount: 0, payer: '' });
@@ -748,6 +814,7 @@
             if (!container) return;
             container.innerHTML = '';
 
+            // AI Button
             if (!document.getElementById('ai-generate-btn')) {
                 const aiBtn = document.createElement('button');
                 aiBtn.id = 'ai-generate-btn';
@@ -788,13 +855,9 @@
                     li.style.borderBottom = '1px dashed #eee';
 
                     li.innerHTML = `
-                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleGroceryItem(${index})" style="width:auto; margin:0 1rem 0 0;">
+                        <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleGroceryItem(${index})" style="width:auto; margin:0 1rem 0 0;">
                         <span style="flex:1; text-decoration: ${item.done ? 'line-through' : 'none'}; color: ${item.done ? '#aaa' : 'inherit'}">${item.name}</span>
-                        <select onchange="updateGroceryAssignee(${index}, this.value)" style="width:120px; margin:0 0.5rem 0 0; font-size:0.8rem; padding:0.2rem;">
-                            ${getParticipantOptions(item.assignee)}
-                        </select>
-                        <button onclick="deleteGroceryItem(${index})" style="background:none; border:none; cursor:pointer; color:#999;">❌</button>
-            `;
+                    `;
                     list.appendChild(li);
                 });
                 container.appendChild(list);
@@ -813,15 +876,10 @@
             btn.innerHTML = "🔮 Analyse des menus en cours...";
             btn.disabled = true;
 
-            const mealsSummary = appData.meals.map(m =>
-                `${m.title}: ${m.starter || '-'}, ${m.main || '-'}, ${m.dessert || '-'}`
-            ).join('\n');
+            const mealsSummary = appData.meals.map(m => `${m.title}: ${m.starter || '-'}, ${m.main || '-'}, ${m.dessert || '-'}`).join('\n');
 
-            const prompt = `Tu es un assistant culinaire expert pour Noël.
-Contexte : Week-end de Noël pour 6 adultes et 3 enfants.
-Voici les menus prévus :
+            const prompt = `Tu es un assistant culinaire expert pour Noël. Contexte : Week-end de Noël pour 6 adultes et 3 enfants. Voici les menus prévus :
 ${mealsSummary}
-
 Tâche : Génère une liste de courses COMPLÈTE et DÉTAILLÉE pour réaliser ces repas.
 - Adapte les quantités pour 9 personnes (6 adultes, 3 enfants).
 - Ajoute les indispensables du petit-déjeuner et du goûter si non précisés.
@@ -829,7 +887,7 @@ Tâche : Génère une liste de courses COMPLÈTE et DÉTAILLÉE pour réaliser c
 - Ne retourne QUE le JSON, sans texte explicatif avant ou après.`;
 
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`, {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -839,12 +897,15 @@ Tâche : Génère une liste de courses COMPLÈTE et DÉTAILLÉE pour réaliser c
 
                 const data = await response.json();
 
-                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                if (!response.ok) {
+                    throw new Error(data.error?.message || `Erreur HTTP ${response.status}`);
+                }
+
+                if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
                     let jsonStr = data.candidates[0].content.parts[0].text;
                     jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '').trim();
 
                     const newItems = JSON.parse(jsonStr);
-
                     if (Array.isArray(newItems)) {
                         newItems.forEach(item => {
                             appData.courses.push({
@@ -857,6 +918,8 @@ Tâche : Génère une liste de courses COMPLÈTE et DÉTAILLÉE pour réaliser c
                         saveData();
                         renderGroceryList();
                         alert(`✅ ${newItems.length} articles ajoutés à la liste !`);
+                    } else {
+                        throw new Error("Le format JSON retourné n'est pas un tableau.");
                     }
                 } else {
                     throw new Error("Réponse invalide de l'IA");
@@ -901,13 +964,13 @@ Tâche : Génère une liste de courses COMPLÈTE et DÉTAILLÉE pour réaliser c
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = '1px solid #eee';
                 tr.innerHTML = `
-                        <td style="padding: 0.8rem 0.5rem;">${expense.desc}</td>
+                    <td style="padding: 0.8rem 0.5rem;">${expense.desc}</td>
                     <td style="padding: 0.8rem 0.5rem;">${expense.payer || '<span style="color:#999; font-style:italic;">?</span>'}</td>
                     <td style="padding: 0.8rem 0.5rem; text-align: right; font-weight: bold;">${parseFloat(expense.amount).toFixed(2)} €</td>
                     <td style="padding: 0.8rem 0.5rem; text-align: right;">
                         <button onclick="deleteExpense(${index})" style="background:none; border:none; cursor:pointer; color:#999;">❌</button>
                     </td>
-                    `;
+                `;
                 container.appendChild(tr);
             });
 
@@ -960,7 +1023,7 @@ Tâche : Génère une liste de courses COMPLÈTE et DÉTAILLÉE pour réaliser c
                 li.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
 
                 li.innerHTML = `
-                        <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${index})" style="width:auto; margin:0 1rem 0 0;">
+                    <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${index})" style="width:auto; margin:0 1rem 0 0;">
                     <div style="flex:1;">
                         <div style="font-weight:bold; text-decoration: ${task.done ? 'line-through' : 'none'}; color: ${task.done ? '#aaa' : 'inherit'}">${task.desc}</div>
                         <div style="font-size:0.8rem; color:#666;">Assigné à : ${task.assignee || 'Tout le monde'}</div>

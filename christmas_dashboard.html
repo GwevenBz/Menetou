@@ -451,404 +451,278 @@
                             <th style="padding: 0.5rem;">Quoi</th>
                             <th style="padding: 0.5rem;">Qui</th>
                             <th style="padding: 0.5rem; text-align: right;">Montant</th>
-                            <th style="padding: 0.5rem;"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="budget-list-container">
-                        <!-- Liste générée par JS -->
-                    </tbody>
-                    errDiv.style.cssText = 'position:fixed; top:0; left:0; width:100%; background:red; color:white;
-                    padding:10px; z-index:9999;';
-                    errDiv.innerText = "Erreur : " + msg + " (Ligne " + line + ")";
-                    document.body.appendChild(errDiv);
-                    return false;
-                    };
+                            document.getElementById(tabId).classList.add('active');
+                            const buttons = Array.from(document.querySelectorAll('.nav-btn'));
+                            const activeButton = buttons.find(btn => btn.getAttribute('onclick').includes(tabId));
+                            appData.meals.forEach((meal, index) => {
+                            const mealDiv = document.createElement('div');
+                            mealDiv.className = 'meal-block';
+                            mealDiv.style.marginBottom = '2rem';
+                            mealDiv.style.padding = '1rem';
+                            mealDiv.style.backgroundColor = '#f9f9f9';
+                            mealDiv.style.borderRadius = '8px';
+                            mealDiv.style.borderLeft = '4px solid var(--christmas-red)';
 
-                    // --- NAVIGATION ---
-                    function switchTab(tabId) {
-                    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-                    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-                    document.getElementById(tabId).classList.add('active');
-                    const buttons = Array.from(document.querySelectorAll('.nav-btn'));
-                    const activeButton = buttons.find(btn => btn.getAttribute('onclick').includes(tabId));
-                    if (activeButton) activeButton.classList.add('active');
-                    }
+                            const createRow = (type, label, val, by) => `
+                            <div class="input-row"
+                                style="display:flex; gap:0.5rem; margin-bottom:0.5rem; align-items:center;">
+                                <input type="text" placeholder="${label}" value="${val || ''}"
+                                    onchange="updateMeal(${index}, '${type}', this.value)"
+                                    style="flex:2; margin-bottom:0;">
+                                <select onchange="updateMeal(${index}, '${type}_by', this.value)"
+                                    style="flex:1; margin-bottom:0;">
+                                    ${getParticipantOptions(by)}
+                                </select>
+                            </div>
+                            `;
 
-                    // --- COUNTDOWN ---
-                    function updateCountdown() {
-                    const targetDate = new Date('December 19, 2025 18:00:00').getTime();
-                    const now = new Date().getTime();
-                    const distance = targetDate - now;
+                            mealDiv.innerHTML = `
+                            <h3 style="margin-top:0">${meal.title}</h3>
+                            <div style="display:grid; gap:0.5rem;">
+                                ${createRow('starter', 'Entrée', meal.starter, meal.starter_by)}
+                                ${createRow('main', 'Plat Principal', meal.main, meal.main_by)}
+                                ${createRow('dessert', 'Dessert', meal.dessert, meal.dessert_by)}
+                            </div>
+                            `;
+                            container.appendChild(mealDiv);
+                            });
+                            }
 
-                    if (distance < 0) { document.getElementById("countdown").innerHTML="C'est parti ! 🎅" ; return; }
-                        const days=Math.floor(distance / (1000 * 60 * 60 * 24)); const hours=Math.floor((distance %
-                        (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const minutes=Math.floor((distance % (1000 * 60 *
-                        60)) / (1000 * 60)); document.getElementById("days").innerText=days;
-                        document.getElementById("hours").innerText=hours;
-                        document.getElementById("minutes").innerText=minutes; } setInterval(updateCountdown, 60000);
-                        updateCountdown(); // --- DATA MANAGEMENT (GOOGLE SHEETS & AI) --- const
-                        APP_DATA_KEY='noel_menetou_data' ; const API_URL_KEY='noel_menetou_api_url' ; const
-                        GEMINI_API_KEY_KEY='noel_menetou_gemini_key' ; let apiUrl=localStorage.getItem(API_URL_KEY)
-                        || '' ; let geminiKey=localStorage.getItem(GEMINI_API_KEY_KEY) || '' ; const PARTICIPANTS=["Papy
-                        Dudu", "Mamie Sophie" , "Marine" , "Anthony" , "Angélique" , "Paul" , "Brune (Enfant)"
-                        , "Alba (Enfant)" , "Lilou (Enfant)" ]; const defaultData={ meals: [ { id: 1,
-                        title: "Vendredi Soir (Arrivée)" , starter: "" , starter_by: "" , main: "" , main_by: "" ,
-                        dessert: "" , dessert_by: "" }, { id: 2, title: "Samedi Midi" , starter: "" , starter_by: "" ,
-                        main: "" , main_by: "" , dessert: "" , dessert_by: "" }, { id: 3,
-                        title: "Samedi Soir (Réveillon)" , starter: "" , starter_by: "" , main: "" , main_by: "" ,
-                        dessert: "" , dessert_by: "" }, { id: 4, title: "Dimanche Midi (Départ)" , starter: "" ,
-                        starter_by: "" , main: "" , main_by: "" , dessert: "" , dessert_by: "" } ], courses: [], budget:
-                        [], tasks: [] }; let appData=JSON.parse(JSON.stringify(defaultData)); // Helper to generate
-                        participant options function getParticipantOptions(selectedValue) { let
-                        options='<option value="">-- Qui ? --</option>' ; PARTICIPANTS.forEach(p=> {
-                        const selected = p === selectedValue ? 'selected' : '';
-                        options += `<option value="${p}" ${selected}>${p}</option>`;
-                        });
-                        return options;
-                        }
+                            function updateMeal(index, field, newValue) {
+                            const oldValue = appData.meals[index][field];
+                            appData.meals[index][field] = newValue;
 
-                        // Helper to populate select elements
-                        function populateSelects() {
-                        const selects = ['expense-payer', 'task-assignee'];
-                        selects.forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el) el.innerHTML = getParticipantOptions('');
-                        });
-                        }
+                            // Auto-add to grocery list if food item changed
+                            if (!field.endsWith('_by')) {
+                            if (oldValue) {
+                            // Remove old item if it exists in grocery list (simple check)
+                            const itemIndex = appData.courses.findIndex(c => c.name === oldValue);
+                            if (itemIndex !== -1) {
+                            if (newValue) appData.courses[itemIndex].name = newValue;
+                            else appData.courses.splice(itemIndex, 1);
+                            }
+                            } else if (newValue) {
+                            appData.courses.push({ name: newValue, category: 'Autre', done: false, assignee: '' });
+                            }
+                            }
 
-                        // Settings UI
-                        function openSettings() {
-                        document.getElementById('settings-modal').style.display = 'flex';
-                        document.getElementById('api-url-input').value = apiUrl;
-                        document.getElementById('gemini-key-input').value = geminiKey;
-                        }
-                        // Core Sync Logic
-                        async function loadData() {
-                        populateSelects();
-                        const local = localStorage.getItem(APP_DATA_KEY);
-                        if (local) {
-                        try {
-                        appData = JSON.parse(local);
-                        if (!appData.meals || appData.meals.length === 0) appData.meals =
-                        JSON.parse(JSON.stringify(defaultData.meals));
-                        if (!appData.courses) appData.courses = [];
-                        if (!appData.budget) appData.budget = [];
-                        if (!appData.tasks) appData.tasks = [];
-                        } catch (e) {
-                        console.error("Error parsing local data", e);
-                        appData = JSON.parse(JSON.stringify(defaultData));
-                        }
-                        } else {
-                        appData = JSON.parse(JSON.stringify(defaultData));
-                        }
-                        refreshUI();
-                        if (apiUrl) {
-                        await syncData();
-                        }
-                        }
+                            if (newValue) {
+                            const mealTitle = appData.meals[index].title;
+                            const budgetDesc = `Budget ${mealTitle}`;
+                            const budgetExists = appData.budget.some(b => b.desc === budgetDesc);
+                            if (!budgetExists) {
+                            appData.budget.push({ desc: budgetDesc, amount: 0, payer: '' });
+                            }
+                            }
 
-                        async function syncData() {
-                        if (!apiUrl) return;
-                        const btn = document.querySelector('button[title="Synchroniser maintenant"]');
-                        // Try to push local data if fetch failed
-                        try {
-                        const formData = new FormData();
-                        formData.append('data', JSON.stringify(appData));
-                        await fetch(apiUrl, {
-                        method: 'POST',
-                        body: formData
-                        });
-                        if (btn) btn.innerHTML = "✅";
-                        } catch (e2) {
-                        console.error("Save error", e2);
-                        if (btn) btn.innerHTML = "⚠️";
-                        }
-                        }
-                        if (btn) setTimeout(() => btn.innerHTML = "🔄", 2000);
-                        }
+                            saveData();
+                            renderGroceryList();
+                            renderBudget();
+                            }
 
-                        function refreshUI() {
-                        renderMeals();
-                        renderGroceryList();
-                        renderBudget();
-                        renderTasks();
-                        updateCountdown();
-                        }
+                            function renderGroceryList() {
+                            const container = document.getElementById('grocery-list-container');
+                            if (!container) return;
+                            container.innerHTML = '';
 
-                        // --- MEALS MODULE ---
-                        function renderMeals() {
-                        const container = document.getElementById('meals-container');
-                        if (!container) return;
-                        container.innerHTML = '';
+                            const categories = { 'Frais': [], 'Épicerie': [], 'Boissons': [], 'Autre': [] };
 
-                        appData.meals.forEach((meal, index) => {
-                        const mealDiv = document.createElement('div');
-                        mealDiv.className = 'meal-block';
-                        mealDiv.style.marginBottom = '2rem';
-                        mealDiv.style.padding = '1rem';
-                        mealDiv.style.backgroundColor = '#f9f9f9';
-                        mealDiv.style.borderRadius = '8px';
-                        mealDiv.style.borderLeft = '4px solid var(--christmas-red)';
+                            appData.courses.forEach((item, index) => {
+                            if (!categories[item.category]) categories['Autre'].push({ item, index });
+                            else categories[item.category].push({ item, index });
+                            });
 
-                        const createRow = (type, label, val, by) => `
-                        <div class="input-row"
-                            style="display:flex; gap:0.5rem; margin-bottom:0.5rem; align-items:center;">
-                            <input type="text" placeholder="${label}" value="${val || ''}"
-                                onchange="updateMeal(${index}, '${type}', this.value)" style="flex:2; margin-bottom:0;">
-                            <select onchange="updateMeal(${index}, '${type}_by', this.value)"
-                                style="flex:1; margin-bottom:0;">
-                                ${getParticipantOptions(by)}
+                            for (const [cat, items] of Object.entries(categories)) {
+                            if (items.length === 0) continue;
+
+                            const catHeader = document.createElement('h4');
+                            catHeader.style.color = 'var(--christmas-green)';
+                            catHeader.style.borderBottom = '1px solid #eee';
+                            catHeader.innerText = cat;
+                            container.appendChild(catHeader);
+
+                            const list = document.createElement('ul');
+                            list.style.listStyle = 'none';
+                            list.style.padding = 0;
+
+                            items.forEach(({ item, index }) => {
+                            const li = document.createElement('li');
+                            li.style.display = 'flex';
+                            li.style.alignItems = 'center';
+                            li.style.padding = '0.5rem 0';
+                            li.style.borderBottom = '1px dashed #eee';
+
+                            li.innerHTML = `
+                            <input type="checkbox" ${item.done ? 'checked' : '' } onchange="toggleGroceryItem(${index})"
+                                style="width:auto; margin:0 1rem 0 0;">
+                            <span
+                                style="flex:1; text-decoration: ${item.done ? 'line-through' : 'none'}; color: ${item.done ? '#aaa' : 'inherit'}">${item.name}</span>
+                            <select onchange="updateGroceryAssignee(${index}, this.value)"
+                                style="margin-left:auto; width:auto; padding:0.2rem; font-size:0.8rem;">
+                                ${getParticipantOptions(item.assignee)}
                             </select>
-                        </div>
-                        `;
+                            <button onclick="deleteGroceryItem(${index})"
+                                style="background:none; border:none; cursor:pointer; color:#999; margin-left:0.5rem;">❌</button>
+                            `;
+                            list.appendChild(li);
+                            });
+                            container.appendChild(list);
+                            }
+                            }
 
-                        mealDiv.innerHTML = `
-                        <h3 style="margin-top:0">${meal.title}</h3>
-                        <div style="display:grid; gap:0.5rem;">
-                            ${createRow('starter', 'Entrée', meal.starter, meal.starter_by)}
-                            ${createRow('main', 'Plat Principal', meal.main, meal.main_by)}
-                            ${createRow('dessert', 'Dessert', meal.dessert, meal.dessert_by)}
-                        </div>
-                        `;
-                        container.appendChild(mealDiv);
-                        });
-                        }
+                            function addGroceryItem() {
+                            const nameInput = document.getElementById('new-item-name');
+                            const catInput = document.getElementById('new-item-category');
+                            const name = nameInput.value.trim();
+                            const category = catInput.value;
 
-                        function updateMeal(index, field, newValue) {
-                        const oldValue = appData.meals[index][field];
-                        appData.meals[index][field] = newValue;
+                            if (name) {
+                            appData.courses.push({ name, category, done: false, assignee: '' });
+                            nameInput.value = '';
+                            saveData();
+                            renderGroceryList();
+                            }
+                            }
 
-                        // Auto-add to grocery list if food item changed
-                        if (!field.endsWith('_by')) {
-                        if (oldValue) {
-                        // Remove old item if it exists in grocery list (simple check)
-                        const itemIndex = appData.courses.findIndex(c => c.name === oldValue);
-                        if (itemIndex !== -1) {
-                        if (newValue) appData.courses[itemIndex].name = newValue;
-                        else appData.courses.splice(itemIndex, 1);
-                        }
-                        } else if (newValue) {
-                        appData.courses.push({ name: newValue, category: 'Autre', done: false, assignee: '' });
-                        }
-                        }
+                            function toggleGroceryItem(originalIndex) {
+                            appData.courses[originalIndex].done = !appData.courses[originalIndex].done;
+                            saveData();
+                            renderGroceryList();
+                            }
 
-                        if (newValue) {
-                        const mealTitle = appData.meals[index].title;
-                        const budgetDesc = `Budget ${mealTitle}`;
-                        const budgetExists = appData.budget.some(b => b.desc === budgetDesc);
-                        if (!budgetExists) {
-                        appData.budget.push({ desc: budgetDesc, amount: 0, payer: '' });
-                        }
-                        }
+                            function updateGroceryAssignee(index, assignee) {
+                            appData.courses[index].assignee = assignee;
+                            saveData();
+                            }
 
-                        saveData();
-                        renderGroceryList();
-                        renderBudget();
-                        }
+                            function deleteGroceryItem(index) {
+                            if (confirm('Supprimer cet article ?')) {
+                            appData.courses.splice(index, 1);
+                            saveData();
+                            renderGroceryList();
+                            }
+                            }
 
-                        function renderGroceryList() {
-                        const container = document.getElementById('grocery-list-container');
-                        if (!container) return;
-                        container.innerHTML = '';
+                            // --- BUDGET MODULE ---
+                            function renderBudget() {
+                            const container = document.getElementById('budget-list-container');
+                            if (!container) return;
+                            container.innerHTML = '';
 
-                        const categories = { 'Frais': [], 'Épicerie': [], 'Boissons': [], 'Autre': [] };
+                            let total = 0;
 
-                        appData.courses.forEach((item, index) => {
-                        if (!categories[item.category]) categories['Autre'].push({ item, index });
-                        else categories[item.category].push({ item, index });
-                        });
+                            appData.budget.forEach((expense, index) => {
+                            total += parseFloat(expense.amount);
+                            const tr = document.createElement('tr');
+                            tr.style.borderBottom = '1px solid #eee';
 
-                        for (const [cat, items] of Object.entries(categories)) {
-                        if (items.length === 0) continue;
+                            tr.innerHTML = `
+                            <td style="padding: 0.8rem 0.5rem;">${expense.desc}</td>
+                            <td style="padding: 0.8rem 0.5rem;">${expense.payer || '<span
+                                    style="color:#999; font-style:italic;">?</span>'}</td>
+                            <td style="padding: 0.8rem 0.5rem; text-align: right; font-weight: bold;">
+                                ${parseFloat(expense.amount).toFixed(2)} €</td>
+                            <td style="padding: 0.8rem 0.5rem; text-align: right;">
+                                <button onclick="deleteExpense(${index})"
+                                    style="background:none; border:none; cursor:pointer; color:#999;">❌</button>
+                            </td>
+                            `;
+                            container.appendChild(tr);
+                            });
 
-                        const catHeader = document.createElement('h4');
-                        catHeader.style.color = 'var(--christmas-green)';
-                        catHeader.style.borderBottom = '1px solid #eee';
-                        catHeader.innerText = cat;
-                        container.appendChild(catHeader);
+                            document.getElementById('total-cost').innerText = total.toFixed(2) + ' €';
+                            document.getElementById('cost-per-adult').innerText = (total / 6).toFixed(2) + ' €';
+                            }
 
-                        const list = document.createElement('ul');
-                        list.style.listStyle = 'none';
-                        list.style.padding = 0;
+                            function addExpense() {
+                            const descInput = document.getElementById('expense-desc');
+                            const amountInput = document.getElementById('expense-amount');
+                            const payerInput = document.getElementById('expense-payer');
 
-                        items.forEach(({ item, index }) => {
-                        const li = document.createElement('li');
-                        li.style.display = 'flex';
-                        li.style.alignItems = 'center';
-                        li.style.padding = '0.5rem 0';
-                        li.style.borderBottom = '1px dashed #eee';
+                            const desc = descInput.value.trim();
+                            const amount = parseFloat(amountInput.value);
+                            const payer = payerInput.value;
 
-                        li.innerHTML = `
-                        <input type="checkbox" ${item.done ? 'checked' : '' } onchange="toggleGroceryItem(${index})"
-                            style="width:auto; margin:0 1rem 0 0;">
-                        <span
-                            style="flex:1; text-decoration: ${item.done ? 'line-through' : 'none'}; color: ${item.done ? '#aaa' : 'inherit'}">${item.name}</span>
-                        <select onchange="updateGroceryAssignee(${index}, this.value)"
-                            style="margin-left:auto; width:auto; padding:0.2rem; font-size:0.8rem;">
-                            ${getParticipantOptions(item.assignee)}
-                        </select>
-                        <button onclick="deleteGroceryItem(${index})"
-                            style="background:none; border:none; cursor:pointer; color:#999; margin-left:0.5rem;">❌</button>
-                        `;
-                        list.appendChild(li);
-                        });
-                        container.appendChild(list);
-                        }
-                        }
+                            if (!desc || isNaN(amount)) return;
 
-                        function addGroceryItem() {
-                        const nameInput = document.getElementById('new-item-name');
-                        const catInput = document.getElementById('new-item-category');
-                        const name = nameInput.value.trim();
-                        const category = catInput.value;
+                            appData.budget.push({ desc: desc, amount: amount, payer: payer });
+                            descInput.value = '';
+                            amountInput.value = '';
+                            payerInput.value = '';
+                            saveData();
+                            renderBudget();
+                            }
 
-                        if (name) {
-                        appData.courses.push({ name, category, done: false, assignee: '' });
-                        nameInput.value = '';
-                        saveData();
-                        renderGroceryList();
-                        }
-                        }
+                            function deleteExpense(index) {
+                            if (confirm('Supprimer cette dépense ?')) {
+                            appData.budget.splice(index, 1);
+                            saveData();
+                            renderBudget();
+                            }
+                            }
 
-                        function toggleGroceryItem(originalIndex) {
-                        appData.courses[originalIndex].done = !appData.courses[originalIndex].done;
-                        saveData();
-                        renderGroceryList();
-                        }
+                            // --- TASKS MODULE ---
+                            function renderTasks() {
+                            const container = document.getElementById('tasks-list-container');
+                            if (!container) return;
+                            container.innerHTML = '';
 
-                        function updateGroceryAssignee(index, assignee) {
-                        appData.courses[index].assignee = assignee;
-                        saveData();
-                        }
+                            appData.tasks.forEach((task, index) => {
+                            const li = document.createElement('li');
+                            li.style.display = 'flex';
+                            li.style.alignItems = 'center';
+                            li.style.padding = '0.5rem';
+                            li.style.borderBottom = '1px solid #eee';
+                            li.style.backgroundColor = task.done ? '#f0f0f0' : 'white';
 
-                        function deleteGroceryItem(index) {
-                        if (confirm('Supprimer cet article ?')) {
-                        appData.courses.splice(index, 1);
-                        saveData();
-                        renderGroceryList();
-                        }
-                        }
-
-                        // --- BUDGET MODULE ---
-                        function renderBudget() {
-                        const container = document.getElementById('budget-list-container');
-                        if (!container) return;
-                        container.innerHTML = '';
-
-                        let total = 0;
-
-                        appData.budget.forEach((expense, index) => {
-                        total += parseFloat(expense.amount);
-                        const tr = document.createElement('tr');
-                        tr.style.borderBottom = '1px solid #eee';
-
-                        tr.innerHTML = `
-                        <td style="padding: 0.8rem 0.5rem;">${expense.desc}</td>
-                        <td style="padding: 0.8rem 0.5rem;">${expense.payer || '<span
-                                style="color:#999; font-style:italic;">?</span>'}</td>
-                        <td style="padding: 0.8rem 0.5rem; text-align: right; font-weight: bold;">
-                            ${parseFloat(expense.amount).toFixed(2)} €</td>
-                        <td style="padding: 0.8rem 0.5rem; text-align: right;">
-                            <button onclick="deleteExpense(${index})"
+                            li.innerHTML = `
+                            <input type="checkbox" ${task.done ? 'checked' : '' } onchange="toggleTask(${index})"
+                                style="width:auto; margin-right:1rem;">
+                            <div
+                                style="flex:1; text-decoration: ${task.done ? 'line-through' : 'none'}; color: ${task.done ? '#aaa' : 'inherit'}">
+                                <strong>${task.desc}</strong>
+                                <div style="font-size:0.8rem; color:#666;">Assigné à : ${task.assignee || '?'}</div>
+                            </div>
+                            <button onclick="deleteTask(${index})"
                                 style="background:none; border:none; cursor:pointer; color:#999;">❌</button>
-                        </td>
-                        `;
-                        container.appendChild(tr);
-                        });
+                            `;
+                            container.appendChild(li);
+                            });
+                            }
 
-                        document.getElementById('total-cost').innerText = total.toFixed(2) + ' €';
-                        document.getElementById('cost-per-adult').innerText = (total / 6).toFixed(2) + ' €';
-                        }
+                            function addTask() {
+                            const descInput = document.getElementById('task-desc');
+                            const assigneeInput = document.getElementById('task-assignee');
+                            const desc = descInput.value.trim();
+                            const assignee = assigneeInput.value;
 
-                        function addExpense() {
-                        const descInput = document.getElementById('expense-desc');
-                        const amountInput = document.getElementById('expense-amount');
-                        const payerInput = document.getElementById('expense-payer');
+                            if (desc) {
+                            appData.tasks.push({ desc, assignee, done: false });
+                            descInput.value = '';
+                            assigneeInput.value = '';
+                            saveData();
+                            renderTasks();
+                            }
+                            }
 
-                        const desc = descInput.value.trim();
-                        const amount = parseFloat(amountInput.value);
-                        const payer = payerInput.value;
+                            function toggleTask(index) {
+                            appData.tasks[index].done = !appData.tasks[index].done;
+                            saveData();
+                            renderTasks();
+                            }
 
-                        if (!desc || isNaN(amount)) return;
+                            function deleteTask(index) {
+                            if (confirm('Supprimer cette tâche ?')) {
+                            appData.tasks.splice(index, 1);
+                            saveData();
+                            renderTasks();
+                            }
+                            }
 
-                        appData.budget.push({ desc: desc, amount: amount, payer: payer });
-                        descInput.value = '';
-                        amountInput.value = '';
-                        payerInput.value = '';
-                        saveData();
-                        renderBudget();
-                        }
+                            // Initialize
+                            loadData();
 
-                        function deleteExpense(index) {
-                        if (confirm('Supprimer cette dépense ?')) {
-                        appData.budget.splice(index, 1);
-                        saveData();
-                        renderBudget();
-                        }
-                        }
-
-                        // --- TASKS MODULE ---
-                        function renderTasks() {
-                        const container = document.getElementById('tasks-list-container');
-                        if (!container) return;
-                        container.innerHTML = '';
-
-                        appData.tasks.forEach((task, index) => {
-                        const li = document.createElement('li');
-                        li.style.display = 'flex';
-                        li.style.alignItems = 'center';
-                        li.style.padding = '0.5rem';
-                        li.style.borderBottom = '1px solid #eee';
-                        li.style.backgroundColor = task.done ? '#f0f0f0' : 'white';
-
-                        li.innerHTML = `
-                        <input type="checkbox" ${task.done ? 'checked' : '' } onchange="toggleTask(${index})"
-                            style="width:auto; margin-right:1rem;">
-                        <div
-                            style="flex:1; text-decoration: ${task.done ? 'line-through' : 'none'}; color: ${task.done ? '#aaa' : 'inherit'}">
-                            <strong>${task.desc}</strong>
-                            <div style="font-size:0.8rem; color:#666;">Assigné à : ${task.assignee || '?'}</div>
-                        </div>
-                        <button onclick="deleteTask(${index})"
-                            style="background:none; border:none; cursor:pointer; color:#999;">❌</button>
-                        `;
-                        container.appendChild(li);
-                        });
-                        }
-
-                        function addTask() {
-                        const descInput = document.getElementById('task-desc');
-                        const assigneeInput = document.getElementById('task-assignee');
-                        const desc = descInput.value.trim();
-                        const assignee = assigneeInput.value;
-
-                        if (desc) {
-                        appData.tasks.push({ desc, assignee, done: false });
-                        descInput.value = '';
-                        assigneeInput.value = '';
-                        saveData();
-                        renderTasks();
-                        }
-                        }
-
-                        function toggleTask(index) {
-                        appData.tasks[index].done = !appData.tasks[index].done;
-                        saveData();
-                        renderTasks();
-                        }
-
-                        function deleteTask(index) {
-                        if (confirm('Supprimer cette tâche ?')) {
-                        appData.tasks.splice(index, 1);
-                        saveData();
-                        renderTasks();
-                        }
-                        }
-
-                        // Initialize
-                        loadData();
-
-                        </script>
+                            </script>
 </body>
 
 </html>

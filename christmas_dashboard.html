@@ -522,31 +522,6 @@
                         document.getElementById('api-url-input').value = apiUrl;
                         document.getElementById('gemini-key-input').value = geminiKey;
                         }
-
-                        function closeSettings() {
-                        document.getElementById('settings-modal').style.display = 'none';
-                        }
-
-                        function saveSettings() {
-                        const url = document.getElementById('api-url-input').value.trim();
-                        const key = document.getElementById('gemini-key-input').value.trim();
-
-                        if (url) {
-                        apiUrl = url;
-                        localStorage.setItem(API_URL_KEY, apiUrl);
-                        }
-                        if (key) {
-                        geminiKey = key;
-                        localStorage.setItem(GEMINI_API_KEY_KEY, geminiKey);
-                        }
-                        closeSettings();
-                        if (apiUrl) syncData();
-                        }
-
-                        function saveData() {
-                        localStorage.setItem(APP_DATA_KEY, JSON.stringify(appData));
-                        }
-
                         // Core Sync Logic
                         async function loadData() {
                         populateSelects();
@@ -575,38 +550,6 @@
                         async function syncData() {
                         if (!apiUrl) return;
                         const btn = document.querySelector('button[title="Synchroniser maintenant"]');
-                        if (btn) {
-                        btn.classList.add('rotating');
-                        btn.innerHTML = "⏳";
-                        }
-
-                        try {
-                        const response = await fetch(apiUrl);
-                        const data = await response.json();
-
-                        if (data && !data.error) {
-                        appData = data;
-                        if (!appData.meals || appData.meals.length === 0) appData.meals =
-                        JSON.parse(JSON.stringify(defaultData.meals));
-                        if (!appData.courses) appData.courses = [];
-                        if (!appData.budget) appData.budget = [];
-                        if (!appData.tasks) appData.tasks = [];
-
-                        localStorage.setItem(APP_DATA_KEY, JSON.stringify(appData));
-                        refreshUI();
-                        if (btn) btn.innerHTML = "✅";
-                        } else {
-                        console.error("Invalid data received", data);
-                        if (btn) {
-                        btn.innerHTML = "⚠️";
-                        const statusEl = document.getElementById('sync-status');
-                        if (statusEl) statusEl.innerText = "Erreur: " + (data.error || "Inconnue");
-                        }
-                        }
-                        } catch (e) {
-                        console.error("Sync error", e);
-                        if (btn) btn.innerHTML = "❌";
-
                         // Try to push local data if fetch failed
                         try {
                         const formData = new FormData();

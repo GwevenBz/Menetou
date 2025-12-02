@@ -488,7 +488,7 @@
 
     <!-- Data Controls -->
     <div class="data-controls">
-        <button class="icon-btn" onclick="syncData()" title="Synchroniser maintenant">🔄</button>
+        <button class="icon-btn" onclick="saveToServer()" title="Synchroniser maintenant">🔄</button>
         <button class="icon-btn" onclick="openSettings()" title="Configuration">⚙️</button>
     </div>
     <div id="sync-status"
@@ -568,7 +568,8 @@
         const API_URL_KEY = 'noel_menetou_api_url';
         const GEMINI_API_KEY_KEY = 'noel_menetou_gemini_key';
 
-        let apiUrl = localStorage.getItem(API_URL_KEY) || '';
+        const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbyryVET0lGQTpgyfzCwHSxUF2b9ikYUyLrk-rT5veYiWuISZjB4nQndhQEPZfDC0uIU8g/exec';
+        let apiUrl = localStorage.getItem(API_URL_KEY) || DEFAULT_API_URL;
         let geminiKey = localStorage.getItem(GEMINI_API_KEY_KEY) || '';
 
         const PARTICIPANTS = ["Papy Dudu", "Mamie Sophie", "Marine", "Anthony", "Angélique", "Paul", "Brune (Enfant)", "Alba (Enfant)", "Lilou (Enfant)"];
@@ -630,7 +631,7 @@
                 localStorage.setItem(GEMINI_API_KEY_KEY, geminiKey);
             }
             closeSettings();
-            if (apiUrl) syncData();
+            if (apiUrl) fetchFromServer();
         }
 
         function saveData() {
@@ -656,25 +657,26 @@
                 appData = JSON.parse(JSON.stringify(defaultData));
             }
             refreshUI();
+
+            // Au chargement, on récupère les données du serveur (GET)
             if (apiUrl) {
-                await syncData();
+                await fetchFromServer();
             }
         }
 
-        async function syncData() {
+        async function fetchFromServer() {
             if (!apiUrl) return;
-            const btn = document.querySelector('button[title="Synchroniser maintenant"]');
-            if (btn) {
-                btn.classList.add('rotating');
-                btn.innerHTML = "⏳";
-            }
+            console.log("Récupération des données serveur...");
 
             try {
                 const response = await fetch(apiUrl);
                 const data = await response.json();
 
                 if (data && !data.error) {
+                    console.log("Données reçues du serveur", data);
                     appData = data;
+
+                    // Ensure structure integrity
                     if (!appData.meals || appData.meals.length === 0) appData.meals = JSON.parse(JSON.stringify(defaultData.meals));
                     if (!appData.courses) appData.courses = [];
                     if (!appData.budget) appData.budget = [];
@@ -682,33 +684,52 @@
 
                     localStorage.setItem(APP_DATA_KEY, JSON.stringify(appData));
                     refreshUI();
+                } else {
+                    console.error("Données invalides reçues", data);
+                }
+            } catch (e) {
+                console.error("Erreur lors de la récupération (GET)", e);
+            }
+        }
+
+        async function saveToServer() {
+            if (!apiUrl) return;
+            const btn = document.querySelector('button[title="Synchroniser maintenant"]');
+            if (btn) {
+                btn.classList.add('rotating');
+                btn.innerHTML = "⏳";
+            }
+
+            // Sauvegarde des données locales vers le serveur (POST)
+            try {
+                const formData = new FormData();
+                formData.append('data', JSON.stringify(appData));
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result && !result.error) {
+                    console.log("Sauvegarde réussie", result);
                     if (btn) btn.innerHTML = "✅";
                 } else {
-                    console.error("Invalid data received", data);
+                    console.error("Erreur lors de la sauvegarde", result);
                     if (btn) {
                         btn.innerHTML = "⚠️";
                         const statusEl = document.getElementById('sync-status');
-                        if (statusEl) statusEl.innerText = "Erreur: " + (data.error || "Inconnue");
+                        if (statusEl) statusEl.innerText = "Erreur: " + (result.error || "Inconnue");
                     }
                 }
             } catch (e) {
-                console.error("Sync error", e);
+                console.error("Erreur réseau lors de la sauvegarde", e);
                 if (btn) btn.innerHTML = "❌";
-
-                // Try to push local data if fetch failed
-                try {
-                    const formData = new FormData();
-                    formData.append('data', JSON.stringify(appData));
-                    await fetch(apiUrl, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    if (btn) btn.innerHTML = "✅";
-                } catch (e2) {
-                    console.error("Save error", e2);
-                    if (btn) btn.innerHTML = "⚠️";
-                }
+                const statusEl = document.getElementById('sync-status');
+                if (statusEl) statusEl.innerText = "Erreur réseau";
             }
+
             if (btn) setTimeout(() => btn.innerHTML = "🔄", 2000);
         }
 

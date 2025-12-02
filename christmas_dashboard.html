@@ -1123,7 +1123,44 @@
         }
 
         // Initialize
+        // --- REMOTE DATA FETCHING ---
+        async function loadRemoteData() {
+            if (!apiUrl) return;
+
+            const syncBtn = document.getElementById('sync-btn');
+            if (syncBtn) syncBtn.innerText = "⏳";
+
+            try {
+                const response = await fetch(apiUrl);
+                if (response.ok) {
+                    const remoteData = await response.json();
+                    if (remoteData && (remoteData.meals || remoteData.courses)) {
+                        console.log("Données distantes chargées :", remoteData);
+                        appData = remoteData;
+
+                        // Ensure structure integrity
+                        if (!appData.meals) appData.meals = defaultData.meals;
+                        if (!appData.courses) appData.courses = [];
+                        if (!appData.budget) appData.budget = [];
+                        if (!appData.tasks) appData.tasks = [];
+
+                        // Save to local storage to keep in sync
+                        localStorage.setItem(APP_DATA_KEY, JSON.stringify(appData));
+                        refreshUI();
+                        if (syncBtn) syncBtn.innerText = "✅";
+                    }
+                }
+            } catch (e) {
+                console.error("Erreur chargement distant", e);
+                if (syncBtn) syncBtn.innerText = "❌";
+            } finally {
+                setTimeout(() => { if (syncBtn) syncBtn.innerText = "☁️"; }, 2000);
+            }
+        }
+
+        // Initialize
         loadData();
+        loadRemoteData();
 
     </script>
 </body>

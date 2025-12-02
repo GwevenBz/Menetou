@@ -602,8 +602,11 @@
         const API_URL_KEY = 'noel_menetou_api_url';
         const GEMINI_API_KEY_KEY = 'noel_menetou_gemini_key';
 
-        let geminiKey = localStorage.getItem(GEMINI_API_KEY_KEY) || '';
-        let apiUrl = localStorage.getItem(API_URL_KEY) || '';
+        // CONFIGURATION PAR DEFAUT
+        const DEFAULT_GEMINI_KEY = "AIzaSyAnhoBODFF6J7HtynQDLWCbPjmrheFBVIo";
+        let geminiKey = localStorage.getItem(GEMINI_API_KEY_KEY) || DEFAULT_GEMINI_KEY;
+        const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbyryVET0lGQTpgyfzCwHSxUF2b9ikYUyLrk-rT5veYiWuISZjB4nQndhQEPZfDC0uIU8g/exec";
+        let apiUrl = localStorage.getItem(API_URL_KEY) || DEFAULT_API_URL;
 
         const PARTICIPANTS = ["Papy Dudu", "Mamie Sophie", "Marine", "Anthony", "Angélique", "Paul"];
 

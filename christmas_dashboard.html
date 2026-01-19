@@ -371,7 +371,7 @@
         <div id="home" class="tab-content active">
             <div class="card">
                 <h2>Bienvenue !</h2>
-                <p>Bienvenue sur le tableau de bord de notre Noël en famille à Menetou-sur-Cher.</p>
+                <p>Bienvenue sur le tableau de bord de notre Noël en famille à Menetou.</p>
                 <p>Utilisez les onglets ci-dessus pour naviguer et ajouter vos idées.</p>
 
                 <div id="countdown">
@@ -390,7 +390,7 @@
             <div class="card">
                 <h2>📍 Informations Pratiques</h2>
                 <ul>
-                    <li><strong>Lieu :</strong> Menetou-sur-Cher (18)</li>
+                    <li><strong>Lieu :</strong> Menetou (18)</li>
                     <li><strong>Arrivée :</strong> Vendredi 19 Décembre (Soir)</li>
                     <li><strong>Départ :</strong> Dimanche 21 Décembre (Midi)</li>
                     <li><strong>Participants :</strong> 6 Adultes, 3 Enfants</li>
@@ -541,7 +541,6 @@
                 style="width:100%; margin-bottom:1rem;">
             <div style="font-size:0.8rem; color:#666; margin-bottom:1rem;">La clé est stockée localement dans votre
                 navigateur. Nécessaire pour générer la liste de courses automatiquement.</div>
-
             <div id="api-test-result"
                 style="display:none; padding:10px; margin-bottom:1rem; border-radius:4px; font-size:0.9rem;"></div>
 
@@ -604,9 +603,9 @@
         const GEMINI_API_KEY_KEY = 'noel_menetou_gemini_key';
 
         // CONFIGURATION PAR DEFAUT
-        const DEFAULT_GEMINI_KEY = "AIzaSyA2gOawWb0A12_oGcH2DdNU8qfKAXJinKk";
+        const DEFAULT_GEMINI_KEY = "";
         let geminiKey = localStorage.getItem(GEMINI_API_KEY_KEY) || DEFAULT_GEMINI_KEY;
-        const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbyryVET0lGQTpgyfzCwHSxUF2b9ikYUyLrk-rT5veYiWuISZjB4nQndhQEPZfDC0uIU8g/exec";
+        const DEFAULT_API_URL = "";
         let apiUrl = localStorage.getItem(API_URL_KEY) || DEFAULT_API_URL;
 
         const PARTICIPANTS = ["Papy Dudu", "Mamie Sophie", "Marine", "Anthony", "Angélique", "Paul"];

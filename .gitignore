@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.env
+
+# Project specific
+grocery_list.json
+
+# OS specific
+.DS_Store
+Thumbs.db

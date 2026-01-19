@@ -5,7 +5,7 @@ import json
 # --- CONFIGURATION ---
 # Remplacez par votre vraie clé API ou définissez la variable d'environnement GOOGLE_API_KEY
 # Vous pouvez trouver votre clé ici : https://aistudio.google.com/app/apikey
-API_KEY = os.getenv("GOOGLE_API_KEY") or "AIzaSyB-LaI8y7D2ll1eq0TPX-zUuxCJFs1Bx6Y"
+API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # --- DONNÉES (MENUS) ---
 # Mettez à jour cette section avec vos vrais menus !

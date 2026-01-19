@@ -2,6 +2,8 @@
 
 Ce projet est un tableau de bord interactif pour organiser un week-end de Noël en famille à Menetou. Il permet de gérer les menus, de générer des listes de courses via l'IA (Gemini) et de suivre le budget et les tâches.
 
+L'objectif était de créer une interface accessible pour tous les membres de la famille, simple d'utilisation, en mélangeant l'idée d'un menu interactif et d'un "Tricount" pour les dépenses.
+
 ## Fonctionnalités
 
 - **Compte à rebours** : Avant l'arrivée du grand jour.
